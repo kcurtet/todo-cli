@@ -24,8 +24,8 @@ pub struct Cli {
 pub enum Commands {
     /// Add a new task.
     Add {
-        /// Task description.
-        description: String,
+        /// Task description (no quotes needed, just type the sentence).
+        description: Vec<String>,
 
         /// Priority (1-5, 1 = highest).
         #[arg(short, long)]

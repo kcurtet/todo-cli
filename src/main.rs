@@ -41,7 +41,24 @@ fn run(cli: Cli) -> Result<()> {
             due,
             tags,
         } => {
-            add_task(&mut storage, description, priority, due, tags)?;
+            // Parse tags from description words starting with '@' and parse date-like word
+            let mut desc_words = Vec::new();
+            let mut parsed_tags = tags;
+            let mut parsed_due = due;
+            for word in description {
+                if word.starts_with('@') && word.len() > 1 {
+                    let tag = word[1..].to_string();
+                    if !parsed_tags.contains(&tag) {
+                        parsed_tags.push(tag);
+                    }
+                } else if parsed_due.is_none() && parse_date(&word).is_ok() {
+                    parsed_due = Some(word.clone());
+                } else {
+                    desc_words.push(word);
+                }
+            }
+            let description = desc_words.join(" ").trim().to_string();
+            add_task(&mut storage, description, priority, parsed_due, parsed_tags)?;
             storage.save_to_file(&data_path)?;
             render_success("Task added successfully");
         }
