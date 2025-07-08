@@ -1,0 +1,21 @@
+[package]
+name = "todo-cli"
+version = "0.1.0"
+edition = "2024"
+authors = ["Kevin Curtet <kcurtet@gmail.com>"]
+description = "A fast, colorful, and feature-rich personal task management CLI tool"
+repository = "https://github.com/kcurtet/todo-cli"
+license = "MIT"
+keywords = ["cli", "todo", "task", "productivity", "terminal"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+clap = { version = "4.0", features = ["derive", "env"] }
+clap_complete = "4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+colored = "2.0"
+thiserror = "1.0"
+chrono-english = "0.1"
+dirs = "5.0"
