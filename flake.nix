@@ -20,8 +20,10 @@
       in {
         packages.default = naersk-lib.buildPackage {
           src = ./.;
+          pname = "todo";
           nativeBuildInputs = with pkgs; [installShellFiles];
           cargoToml = ./Cargo.toml;
+          targets = ["todo"];
 
           meta = with pkgs.lib; {
             description = "A fast, colorful, and feature-rich personal task management CLI tool";
@@ -32,15 +34,10 @@
           };
 
           postInstall = ''
-            # Generate shell completions
-            $out/bin/todo-cli completions bash > todo.bash
-            $out/bin/todo-cli completions zsh > todo.zsh
-            $out/bin/todo-cli completions fish > todo.fish
-
-            # Install completions
-            installShellCompletion todo.bash
-            installShellCompletion todo.zsh
-            installShellCompletion todo.fish
+            for shell in bash zsh fish; do
+              $out/bin/todo completions $shell > todo.$shell
+              installShellCompletion todo.$shell
+            done
           '';
         };
         devShell = with pkgs;

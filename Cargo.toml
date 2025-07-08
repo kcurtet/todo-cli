@@ -19,3 +19,7 @@ colored = "2.0"
 thiserror = "1.0"
 chrono-english = "0.1"
 dirs = "5.0"
+
+[[bin]]
+name = "todo"
+path = "src/main.rs"
