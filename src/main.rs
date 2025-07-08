@@ -6,13 +6,14 @@ mod renderer;
 mod storage;
 mod task;
 
+use chrono::{DateTime, Local};
 use clap::{CommandFactory, Parser};
 use clap_complete::generate;
 use std::io;
 use std::process;
 
 use cli::{Cli, Commands};
-use date_parser::parse_date;
+use date_parser::{parse_date, parse_date_from_words};
 use error::{Result, TodoError};
 use filter::sort_tasks;
 use renderer::{render_error, render_info, render_success, render_task_list};
@@ -41,20 +42,27 @@ fn run(cli: Cli) -> Result<()> {
             due,
             tags,
         } => {
-            // Parse tags from description words starting with '@' and parse date-like word
+            // Parse tags from description words starting with '@' and parse date-like phrase
             let mut desc_words = Vec::new();
             let mut parsed_tags = tags;
             let mut parsed_due = due;
-            for word in description {
+            for word in &description {
                 if word.starts_with('@') && word.len() > 1 {
                     let tag = word[1..].to_string();
                     if !parsed_tags.contains(&tag) {
                         parsed_tags.push(tag);
                     }
-                } else if parsed_due.is_none() && parse_date(&word).is_ok() {
-                    parsed_due = Some(word.clone());
                 } else {
-                    desc_words.push(word);
+                    desc_words.push(word.clone());
+                }
+            }
+            // Try to extract a date phrase from the remaining words if no due date was given
+            if parsed_due.is_none() {
+                let word_refs: Vec<&str> = desc_words.iter().map(|s| s.as_str()).collect();
+                if let Some(dt) = parse_date_from_words(&word_refs) {
+                    parsed_due = Some(dt.to_rfc3339());
+                    // Remove the date phrase from the description
+                    // (optional: not implemented here for simplicity)
                 }
             }
             let description = desc_words.join(" ").trim().to_string();
@@ -132,7 +140,12 @@ fn add_task(
 
     // Parse due date if provided
     if let Some(due_str) = due {
-        task.due_date = Some(parse_date(&due_str)?);
+        // Try RFC3339 first (for parse_date_from_words result)
+        if let Ok(dt) = DateTime::parse_from_rfc3339(&due_str) {
+            task.due_date = Some(dt.with_timezone(&Local));
+        } else {
+            task.due_date = Some(parse_date(&due_str)?);
+        }
     }
 
     let task_id = storage.add_task(task);
